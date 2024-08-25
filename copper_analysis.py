@@ -33,7 +33,7 @@ def load_lottieurl(url: str):
         return None
     return r.json()
 
-lottie_animation = load_lottieurl("https://raw.githubusercontent.com/YABASEIMMANUEL/Yab-Copper-Modeling/main/business-analysis.json")
+lottie_animation = load_lottieurl("https://raw.githubusercontent.com/gee-git-hub/Copper-Data-Insights/main/business-analysis.json")
 
 # Layout: left for menu and animation, right for content
 left, right = st.columns([1, 3], gap="medium")
@@ -363,7 +363,7 @@ footer = """
     }
     </style>
     <div class="footer">
-        <p>© 2024 Copper Modelling Project | Created by YABASE IMMANUEL</p>
+        <p>© 2024 Copper Data Insights Price Prediction | Created by GEETHU</p>
     </div>
 """
 st.markdown(footer, unsafe_allow_html=True)
