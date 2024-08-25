@@ -1,6 +1,6 @@
 # Industrial Copper Modeling
 
-Application Link: https://yabase-copper-modeling.streamlit.app/
+Application Link: https://copper-data-priceprediction.streamlit.app/
 
 ## Introduction
 
