@@ -6,8 +6,9 @@ import pickle
 import requests
 from streamlit_lottie import st_lottie
 import json
+import lzma
+from sklearn.ensemble import ExtraTreesRegressor, ExtraTreesClassifier
 import joblib
-from sklearn.ensemble import ExtraTreesClassifier
 
 # Set up page configuration for Streamlit
 st.set_page_config(page_title="Copper Modelling", page_icon='analytics.ico', layout="wide")
@@ -200,34 +201,36 @@ with right:
                     st.error("Please fill in all required fields.")
                 else:
                     try:
-                        # Load the model using joblib
-                        predict_model = joblib.load('RandomForestRegressor.pkl')
+                        # Attempt to load the model using LZMA compression
+                        with lzma.open('RandomForestRegressor_compressed.pkl', 'rb') as files:
+                            predict_model = pickle.load(files)
+                    except lzma.LZMAError:
+                        # Fallback to standard pickle loading if LZMA fails
+                        with open('RandomForestRegressor_compressed.pkl', 'rb') as file:
+                            predict_model = pickle.load(file)
 
-                        # Check if the status is in the dictionary before encoding
-                        if status in Option.status_encoded:
-                            status = Option.status_encoded[status]
-                        else:
-                            st.error(f"Status '{status}' is not recognized. Please select a valid status.")
-                            st.stop()
+                    # Check if the status is in the dictionary before encoding
+                    if status in Option.status_encoded:
+                        status = Option.status_encoded[status]
+                    else:
+                        st.error(f"Status '{status}' is not recognized. Please select a valid status.")
+                        st.stop()
 
-                        item_type = Option.item_type_encoded[item_type]
+                    item_type = Option.item_type_encoded[item_type]
 
-                        delivery_time_taken = abs((item_date - delivery_date).days)
+                    delivery_time_taken = abs((item_date - delivery_date).days)
 
-                        quantity_log = np.log(quantity)
-                        thickness_log = np.log(thickness)
+                    quantity_log = np.log(quantity)
+                    thickness_log = np.log(thickness)
 
-                        user_data = np.array([[customer, country, status, item_type, application, width, product_ref,
-                                            delivery_time_taken, quantity_log, thickness_log ]])
-                        
-                        pred = predict_model.predict(user_data)
+                    user_data = np.array([[customer, country, status, item_type, application, width, product_ref,
+                                        delivery_time_taken, quantity_log, thickness_log ]])
+                    
+                    pred = predict_model.predict(user_data)
 
-                        selling_price = np.exp(pred[0])
+                    selling_price = np.exp(pred[0])
 
-                        st.subheader(f":green[Predicted Selling Price :] {selling_price:.2f}")
-
-                    except Exception as e:
-                        st.error(f"Error during prediction: {str(e)}")
+                    st.subheader(f":green[Predicted Selling Price :] {selling_price:.2f}") 
 
         if select == 'STATUS':
             st.markdown('##### ***<span style="color:#5751BB">Fill all the fields and Press the below button to view the status :green[WON] / :red[LOST] of copper in the desired time range</span>***', unsafe_allow_html=True)
@@ -274,17 +277,33 @@ with right:
                                         delivery_time_taken, quantity_log, thickness_log, selling_price_log]])
 
                     try:
-                        # Load the model using joblib
-                        model = joblib.load('ExtraTreesClassifier_model.pkl')
-                        status = model.predict(user_data)
+                        # Load the partitioned model parts using LZMA
+                        with lzma.open('ExtraTreesClassifier_part1.pkl', 'rb') as file1:
+                            part1 = pickle.load(file1)
 
-                        if status == 1:
-                            st.subheader(f":green[Status of the copper : ] Won")
-                        else:
-                            st.subheader(f":red[Status of the copper :] Lost")
+                        with lzma.open('ExtraTreesClassifier_part2.pkl', 'rb') as file2:
+                            part2 = pickle.load(file2)
 
-                    except Exception as e:
-                        st.error(f"Error during status prediction: {str(e)}")
+                        # Combine the parts to reconstruct the model
+                        model = ExtraTreesClassifier(n_estimators=len(part1) + len(part2))
+                        model.estimators_ = part1 + part2
+
+                        # Manually set the necessary attributes
+                        model.n_classes_ = 2  # Number of classes (for binary classification)
+                        model.classes_ = np.array([0, 1])  # The class labels
+                        model.n_features_in_ = len(user_data[0])  # Set the number of features
+                        model.n_outputs_ = 1  # Single target output
+
+                    except lzma.LZMAError:
+                        st.error("Failed to load the model due to LZMA compression error.")
+                        st.stop()
+
+                    status = model.predict(user_data)
+
+                    if status == 1:
+                        st.subheader(f":green[Status of the copper : ] Won")
+                    else:
+                        st.subheader(f":red[Status of the copper :] Lost")
 
     elif selected == 'Observations':
         # Inferences Tab Content
