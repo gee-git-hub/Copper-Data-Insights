@@ -5,3 +5,5 @@ matplotlib==3.7.2
 plotly==5.17.0
 requests==2.31.0
 lottie==0.6.8
+joblib==1.4.2
+setuptools==72.2.0
