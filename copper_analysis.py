@@ -225,9 +225,6 @@ with right:
                         selling_price = np.exp(pred[0])
 
                         st.subheader(f":green[Predicted Selling Price :] {selling_price:.2f}") 
-                    except joblib.JoblibError as e:
-                        st.error("Error loading the model: JoblibError")
-                        st.stop()
                     except Exception as e:
                         st.error(f"An unexpected error occurred: {e}")
                         st.stop()
@@ -286,9 +283,6 @@ with right:
                             st.subheader(f":green[Status of the copper : ] Won")
                         else:
                             st.subheader(f":red[Status of the copper :] Lost")
-                    except joblib.JoblibError as e:
-                        st.error("Error loading the model: JoblibError")
-                        st.stop()
                     except Exception as e:
                         st.error(f"An unexpected error occurred: {e}")
                         st.stop()
