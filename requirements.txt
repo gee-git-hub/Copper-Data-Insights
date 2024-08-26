@@ -6,5 +6,6 @@ requests
 streamlit-lottie
 scikit-learn
 joblib
-setuptools
 pickle
+setuptools
+
