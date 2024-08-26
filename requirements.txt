@@ -6,5 +6,5 @@ requests==2.32.3
 streamlit-lottie==0.0.5
 scikit-learn==1.5.1
 joblib==1.4.2
-lzma==0.0.0
+lzma
 setuptools==72.2.0
