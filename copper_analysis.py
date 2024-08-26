@@ -201,7 +201,7 @@ with right:
                 else:
                     try:
                         # Load the model using joblib
-                        predict_model = joblib.load('RandomForestRegressor_model.pkl')
+                        predict_model = joblib.load('RandomForestRegressor_compressed.pkl')
 
                         # Check if the status is in the dictionary before encoding
                         if status in Option.status_encoded:
