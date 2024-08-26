@@ -4,6 +4,6 @@ streamlit==1.37.1
 streamlit-option-menu==0.3.13
 requests==2.32.3
 streamlit-lottie==0.0.5
-scikit-learn==1.5.1
+scikit-learn==1.2.2
 joblib==1.4.2
 setuptools==72.2.0
