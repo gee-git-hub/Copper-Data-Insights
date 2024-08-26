@@ -34,6 +34,7 @@ def load_lottieurl(url: str):
     return r.json()
 
 lottie_animation = load_lottieurl("https://raw.githubusercontent.com/gee-git-hub/Copper-Data-Insights/main/business-analysis.json")
+
 # Layout: left for menu and animation, right for content
 left, right = st.columns([1, 3], gap="medium")
 
