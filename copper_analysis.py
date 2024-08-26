@@ -2,12 +2,12 @@ import pandas as pd
 import numpy as np
 import streamlit as st
 from streamlit_option_menu import option_menu
-import joblib
+import pickle
 import requests
 from streamlit_lottie import st_lottie
 import json
-import lzma
-from sklearn.ensemble import ExtraTreesRegressor, ExtraTreesClassifier
+import joblib
+from sklearn.ensemble import ExtraTreesClassifier
 
 # Set up page configuration for Streamlit
 st.set_page_config(page_title="Copper Modelling", page_icon='analytics.ico', layout="wide")
@@ -32,7 +32,7 @@ def load_lottieurl(url: str):
         return None
     return r.json()
 
-lottie_animation = load_lottieurl("https://raw.githubusercontent.com/YABASEIMMANUEL/copper_modeling/main/business-analysis.json")
+lottie_animation = load_lottieurl("https://raw.githubusercontent.com/YABASEIMMANUEL/Yab-Copper-Modeling/main/business-analysis.json")
 
 # Layout: left for menu and animation, right for content
 left, right = st.columns([1, 3], gap="medium")
@@ -201,7 +201,7 @@ with right:
                 else:
                     try:
                         # Load the model using joblib
-                        predict_model = joblib.load('RandomForestRegressor_compressed.joblib')
+                        predict_model = joblib.load('RandomForestRegressor_model.pkl')
 
                         # Check if the status is in the dictionary before encoding
                         if status in Option.status_encoded:
@@ -219,15 +219,15 @@ with right:
 
                         user_data = np.array([[customer, country, status, item_type, application, width, product_ref,
                                             delivery_time_taken, quantity_log, thickness_log ]])
-                    
+                        
                         pred = predict_model.predict(user_data)
 
                         selling_price = np.exp(pred[0])
 
-                        st.subheader(f":green[Predicted Selling Price :] {selling_price:.2f}") 
+                        st.subheader(f":green[Predicted Selling Price :] {selling_price:.2f}")
+
                     except Exception as e:
-                        st.error(f"An unexpected error occurred: {e}")
-                        st.stop()
+                        st.error(f"Error during prediction: {str(e)}")
 
         if select == 'STATUS':
             st.markdown('##### ***<span style="color:#5751BB">Fill all the fields and Press the below button to view the status :green[WON] / :red[LOST] of copper in the desired time range</span>***', unsafe_allow_html=True)
@@ -264,28 +264,27 @@ with right:
                 if any(val == 'Select an option...' for val in [country, item_type, application, product_ref]):
                     st.error("Please fill in all required fields.")
                 else:
+                    item_type = Option.item_type_encoded[item_type]
+                    delivery_time_taken = abs((item_date - delivery_date).days)
+                    quantity_log = np.log(quantity)
+                    thickness_log = np.log(thickness)
+                    selling_price_log = np.log(selling_price)
+
+                    user_data = np.array([[customer, country, item_type, application, width, product_ref,
+                                        delivery_time_taken, quantity_log, thickness_log, selling_price_log]])
+
                     try:
-                        item_type = Option.item_type_encoded[item_type]
-                        delivery_time_taken = abs((item_date - delivery_date).days)
-                        quantity_log = np.log(quantity)
-                        thickness_log = np.log(thickness)
-                        selling_price_log = np.log(selling_price)
-
-                        user_data = np.array([[customer, country, item_type, application, width, product_ref,
-                                            delivery_time_taken, quantity_log, thickness_log, selling_price_log]])
-
-                        # Load the classifier model
-                        model = joblib.load('ExtraTreesClassifier_model.joblib')
-
+                        # Load the model using joblib
+                        model = joblib.load('ExtraTreesClassifier_model.pkl')
                         status = model.predict(user_data)
 
                         if status == 1:
                             st.subheader(f":green[Status of the copper : ] Won")
                         else:
                             st.subheader(f":red[Status of the copper :] Lost")
+
                     except Exception as e:
-                        st.error(f"An unexpected error occurred: {e}")
-                        st.stop()
+                        st.error(f"Error during status prediction: {str(e)}")
 
     elif selected == 'Observations':
         # Inferences Tab Content
